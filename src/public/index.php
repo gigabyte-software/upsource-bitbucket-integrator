@@ -6,9 +6,51 @@ use \Psr\Http\Message\ResponseInterface as Response;
 
 require '../../vendor/autoload.php';
 
+
 $app = new \Slim\App([
-    'debug' => true,
+    'settings' => [
+        'displayErrorDetails' => true,
+    ],
 ]);
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Create a POST request for a message to BitBucket
+$app->get('/bitbucket', function (Request $request, Response $response) {
+
+    $guzzleHttpClient = new Client([
+        'base_uri' => ' https://api.bitbucket.org/2.0/'
+    ]);
+    $guzzleResponse = $guzzleHttpClient->request('GET','repositories/gigabyte-software/review-creator/pullrequests', [
+        'auth' => [
+            'rowBawTick',
+            'fr%XUtC7git'
+        ]
+    ]);
+
+    $pullRequest = $guzzleResponse->getBody();
+    $response->getBody()->write($pullRequest);
+
+    return $response;
+});
+
+// Create a POST request for a message to BitBucket
+$app->get('/bucket', function (Request $request, Response $response) {
+
+    // I need a guzzle client, which is an http client that I can make requests with (like Chrome)
+    $guzzleHttpClient = new Client();
+    $guzzleResponse = $guzzleHttpClient->request("GET",'https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/pullrequests',
+        ['auth' => [
+            'rowBawTick',
+            'fr%XUtC7git'
+        ]]);
+    $pullRequest = $guzzleResponse->getBody();
+    $response->getBody()->write($pullRequest);
+
+    return $response;
+});
+
 
 // app is dealing with a get request of the format http://dev.review-creator/hello/chris/chambers
 // Taking $args from {}, setting $request variable and instantiating $response variable
@@ -40,13 +82,10 @@ $app->get('/gigabyte', function (Request $request, Response $response) {
 
     // I need a guzzle client, which is an http client that I can make requests with (like Chrome)
     $guzzleHttpClient = new Client();
-
     // I want to use guzzle to make a get request to https://gigabyte.software
     $guzzleResponse = $guzzleHttpClient->request('GET', 'https://gigabyte.software/');
-
     // I want to get the body of the response from the guzzle response object which guzzle returns from my request
     $gigabyteHomePage = $guzzleResponse->getBody();
-
     // I now want to create a slim response object and populate/write the contents of the guzzle body to it and return
     // Writing $gigabyteHomePage to body of response without changing response (General, response headers, request headers)
     $response->getBody()->write($gigabyteHomePage);
