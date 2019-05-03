@@ -1,5 +1,12 @@
 {
     "require": {
-        "slim/slim": "git ^3.12"
+        "slim/slim": "^3.12",
+        "guzzlehttp/guzzle": "~6.0",
+        "juliangut/slim-controller": "^1.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "src/"
+        }
     }
 }
