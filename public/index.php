@@ -8,6 +8,10 @@ $app = new \Slim\App([
     ],
 ]);
 
+// Load environment variables (for user and pass) from .env file
+$dotenv = Dotenv\Dotenv::create(__DIR__."/..");
+$dotenv->load();
+
 // Define route
 // Searching for URL (with dev.review-creator/bucket) in chrome (slim) triggers GET request to Apache
 // (dev.review-creator points to review creator from config file in vhost (vagrant). Slim app then runs HookController
