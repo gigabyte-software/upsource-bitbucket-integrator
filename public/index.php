@@ -1,6 +1,7 @@
 <?php
 
 use Services\BitbucketService;
+use Services\UpsourceService;
 
 require_once '../vendor/autoload.php';
 
@@ -22,7 +23,7 @@ $app = new \Slim\App($container);
 // Retrieving container (not sure why this is needed)
 $container = $app->getContainer();
 // Add bitbucketService to Slim container
-$container['bitbucketService'] = function ($container) {
+$container['bitbucketService'] = function () {
 
     // Get username and password from .env file
     $username = getenv('BITBUCKET_USERNAME');
@@ -34,12 +35,22 @@ $container['bitbucketService'] = function ($container) {
     return $bitbucketService;
 };
 
-// Define route - searching for URL (with dev.review-creator/bucket) in chrome (slim) triggers GET request to Apache
-// (dev.review-creator points to review creator from config file in vhost (vagrant). Slim app then runs HookController
-$app->get('/bitbucket/{id}', '\Controllers\HookController:index');
+// Add upsourceService to Slim container
+$container['upsourceService'] = function () {
 
-// Route for dealing with Bitbuckets post request (Webhook)
-$app->post('/bitbucket/', '\Controllers\HookController:postBitbucket');
+    // Get username and password from .env file
+    $username = getenv('UPSOURCE_USERNAME');
+    $password = getenv('UPSOURCE_PASSWORD');
+
+    // Instantiate object from class upsourceService() and pass in username and password
+    $upsourceService = new UpsourceService($username, $password);
+
+    return $upsourceService;
+};
+
+// Route for dealing with Bitbuckets post request (Webhook) - Use Postman to simulate and see responses.
+// Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
+$app->post('/bitbucket/', '\Controllers\HookController:createUpsourceReview');
 
 // Run app
 $app->run();
