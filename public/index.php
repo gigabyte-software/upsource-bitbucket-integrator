@@ -38,5 +38,8 @@ $container['bitbucketService'] = function ($container) {
 // (dev.review-creator points to review creator from config file in vhost (vagrant). Slim app then runs HookController
 $app->get('/bitbucket/{id}', '\Controllers\HookController:index');
 
+// Route for dealing with Bitbuckets post request (Webhook)
+$app->post('/bitbucket/', '\Controllers\HookController:postBitbucket');
+
 // Run app
 $app->run();
