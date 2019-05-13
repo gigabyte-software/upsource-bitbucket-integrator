@@ -48,7 +48,7 @@ $container['upsourceService'] = function () {
     return $upsourceService;
 };
 
-// Route for dealing with Bitbuckets post request (Webhook) - Use Postman to simulate and see responses.
+// Route for dealing with Bitbuckets POST request (Webhook) - Use Postman to simulate and see responses.
 // Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
 $app->post('/bitbucket/', '\Controllers\HookController:createUpsourceReview');
 
