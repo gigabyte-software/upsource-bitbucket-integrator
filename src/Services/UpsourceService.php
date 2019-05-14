@@ -65,7 +65,7 @@ class UpsourceService
     // Cpnvert bitbucketRepositoryName to upsourceProjectId
     public function getUpsourceProjectId($bitbucketRepositoryName)
     {
-        // map Bitbucket's repository name to Upsource's projectId
+        // map Bitbucket's repository name to Upsource's projectId todo - generalise this?
         $repositoryMap = [
             'hydra' => 'hydra',
             'frontend' => 'hydra',
