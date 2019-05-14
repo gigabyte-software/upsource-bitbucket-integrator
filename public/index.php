@@ -22,8 +22,9 @@ $app = new \Slim\App($container);
 
 // Retrieving container (not sure why this is needed)
 $container = $app->getContainer();
+
 // Add bitbucketService to Slim container
-$container['bitbucketService'] = function () {
+$container[BitbucketService::class] = function () {
 
     // Get username and password from .env file
     $username = getenv('BITBUCKET_USERNAME');
@@ -36,7 +37,7 @@ $container['bitbucketService'] = function () {
 };
 
 // Add upsourceService to Slim container
-$container['upsourceService'] = function () {
+$container[UpsourceService::class] = function () {
 
     // Get username and password from .env file
     $username = getenv('UPSOURCE_USERNAME');
@@ -48,9 +49,16 @@ $container['upsourceService'] = function () {
     return $upsourceService;
 };
 
+$container['\Controllers\HookController'] = function (\Psr\Container\ContainerInterface $container) {
+    return new \Controllers\HookController(
+        $container->get(UpsourceService::class),
+        $container->get(BitbucketService::class)
+    );
+};
+
 // Route for dealing with Bitbuckets POST request (Webhook) - Use Postman to simulate and see responses.
 // Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
-$app->post('/bitbucket/', '\Controllers\HookController:createUpsourceReview');
+$app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
 
 // Run app
 $app->run();
