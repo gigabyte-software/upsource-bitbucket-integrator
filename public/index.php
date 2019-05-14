@@ -31,7 +31,7 @@ $container[BitbucketService::class] = function () {
     $password = getenv('BITBUCKET_PASSWORD');
 
     // Instantiate object from class BitBucketService() and pass in username and password
-    $bitbucketService = new BitbucketService($username, $password);
+    $bitbucketService = new BitbucketService(new \GuzzleHttp\Client(), $username, $password);
 
     return $bitbucketService;
 };
