@@ -16,7 +16,7 @@ class UpsourceService
     // Use constructor so that a new (guzzle) client is always created when UpsourceService is instantiated
     public function __construct($username, $password)
     {
-        // I need a guzzle client, which is an http client that I can make requests with (like Chrome)
+        // Need a guzzle client, which is an http client that can make http requests (like Chrome)
         // Use $this to access $httpClient variable in this class and set it to new Client(); - (guzzle)
         $this->httpClient = $this->createClient($username, $password);
     }
@@ -41,7 +41,6 @@ class UpsourceService
      */
     public function createUpsourceReview($projectId, $branchName)
     {
-        // todo - extract project name from webhook and enter it is as projectName (Not always possible?)
         // Creating POST request createReview and passing in projectId (name) and branch name to Upsource
         $guzzleResponse = $this->httpClient->post('createReview', [
             'json' => [
@@ -63,6 +62,7 @@ class UpsourceService
         return $upsourceReviewUrl;
     }
 
+    // Cpnvert bitbucketRepositoryName to upsourceProjectId
     public function getUpsourceProjectId($bitbucketRepositoryName)
     {
         // map Bitbucket's repository name to Upsource's projectId
