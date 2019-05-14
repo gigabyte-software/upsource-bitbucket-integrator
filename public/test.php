@@ -6,7 +6,7 @@ use GuzzleHttp\Client;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-require '../../vendor/autoload.php';
+require '../vendor/autoload.php';
 
 
 $app = new \Slim\App([
@@ -85,13 +85,13 @@ $app->get('/putbucket/{id}', function (Request $request, Response $slimResponse,
 });
 
 
-// Create a POST request for a message to BitBucket
+// Create a POST request for a message to BitBucket??
 $app->get('/bitbucket', function (Request $request, Response $response) {
 
     $guzzleHttpClient = new Client([
         'base_uri' => ' https://api.bitbucket.org/2.0/'
     ]);
-    $guzzleResponse = $guzzleHttpClient->request('GET','repositories/gigabyte-software/review-creator/pullrequests', [
+    $guzzleResponse = $guzzleHttpClient->request('GET','repositories/gigabyte-software/review-creator/pullrequests/1', [
         'auth' => [
             'rowBawTick',
             'fr%XUtC7git'

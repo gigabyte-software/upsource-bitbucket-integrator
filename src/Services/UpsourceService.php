@@ -62,4 +62,26 @@ class UpsourceService
 
         return $upsourceReviewUrl;
     }
+
+    public function getUpsourceProjectId($bitbucketRepositoryName)
+    {
+        // map Bitbucket's repository name to Upsource's projectId
+        $repositoryMap = [
+            'hydra' => 'hydra',
+            'frontend' => 'hydra',
+            'development-performance-reports' => 'hydra',
+            'box' => 'hydra',
+            'mobile' => 'unicorn',
+            'environments' => 'unicorn',
+            'unicron-domain' => 'unicorn',
+            'fe1' => 'unicorn',
+            'micro1' => 'unicorn',
+            'infra' => 'unicorn',
+            'review-creator' => 'review-creator',
+        ];
+
+        $upsourceProjectId = $repositoryMap[$bitbucketRepositoryName];
+
+        return $upsourceProjectId;
+    }
 }
