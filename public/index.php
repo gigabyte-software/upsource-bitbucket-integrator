@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Client;
 use Services\BitbucketService;
 use Services\UpsourceService;
 
@@ -33,7 +34,7 @@ $container[BitbucketService::class] = function () {
     $password = getenv('BITBUCKET_PASSWORD');
 
     // Instantiate object from class BitBucketService() and pass in username and password
-    $bitbucketService = new BitbucketService(new \GuzzleHttp\Client(), $username, $password);
+    $bitbucketService = new BitbucketService(new Client(), $username, $password);
 
     return $bitbucketService;
 };
@@ -46,7 +47,7 @@ $container[UpsourceService::class] = function () {
     $password = getenv('UPSOURCE_PASSWORD');
 
     // Instantiate object from class upsourceService() and pass in username and password
-    $upsourceService = new UpsourceService($username, $password);
+    $upsourceService = new UpsourceService(new Client(), $username, $password);
 
     return $upsourceService;
 };
