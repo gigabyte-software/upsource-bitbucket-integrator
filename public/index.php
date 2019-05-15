@@ -60,5 +60,9 @@ $container['\Controllers\HookController'] = function (\Psr\Container\ContainerIn
 // Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
 $app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
 
+$app->get('/hello', function($request) {
+    echo 'hello';
+});
+
 // Run app
 $app->run();
