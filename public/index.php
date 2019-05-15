@@ -5,9 +5,9 @@ use Services\UpsourceService;
 
 require_once '../vendor/autoload.php';
 
-// Load environment variables (for user and pass) from .env file
-$dotenv = Dotenv\Dotenv::create(__DIR__ . "/..");
-$dotenv->load();
+//// Load environment variables (for user and pass) from .env file
+//$dotenv = Dotenv\Dotenv::create(__DIR__ . "/..");
+//$dotenv->load();
 
 // Instantiate Slim container and set debugging/error settings
 // Dependency container instance is injected into the Slim app's constructor???
