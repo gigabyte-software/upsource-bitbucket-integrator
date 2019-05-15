@@ -23,7 +23,7 @@ class BitbucketService
     // Use constructor so that a new (guzzle) client is always created when BitbucketService is called (instantiated?)
     public function __construct(Client $httpClient, string $username, string $password)
     {
-        // I need a guzzle client, which is an http client that I can make requests with (like Chrome)
+        // Need guzzle (http client) that to make requests with (like Chrome)
         // Use $this to access $httpClient variable in this class and set it to new Client(); - (guzzle)
         $this->httpClient = $httpClient;
         $this->username = $username;
