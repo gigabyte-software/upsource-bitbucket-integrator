@@ -34,12 +34,11 @@ class HookController
         $bitbucketBranchName = $bitbucketPullRequest['pullrequest']['source']['branch']['name'];
 
         // Get repository name from Bitbucket and convert to upsourceProjectId
-        $bitBucketRepositoryName = $bitbucketPullRequest['pullrequest']['source']['repository']['name'];
-        $upsourceProjectId = $this->upsourceService->getUpsourceProjectId($bitBucketRepositoryName);
+        $bitbucketRepositoryName = $bitbucketPullRequest['pullrequest']['source']['repository']['name'];
 
         /** @var UpsourceService $upsourceService */
         // Create Upsource Review and pass in branchName from Bibucket webhook and upsourceProjectId
-        $upsourceReviewUrl = $this->upsourceService->createUpsourceReview($upsourceProjectId, $bitbucketBranchName);
+        $upsourceReviewUrl = $this->upsourceService->createUpsourceReview($bitbucketRepositoryName, $bitbucketBranchName);
 
         // Update Bitbucket description with upsource url (pass in bitbucket's pullRequestId - also need title
         // and current description to append but these are retrieved in BitbucketService)

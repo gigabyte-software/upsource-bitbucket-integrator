@@ -1,16 +1,17 @@
 <?php
 
+
 use GuzzleHttp\Client;
 use Services\BitbucketService;
 use Services\UpsourceService;
 
 require_once '../vendor/autoload.php';
-
-//// Load environment variables (for user and pass) from .env file
+// Load environment variables (for user and pass) from .env file
 if (getenv("ENVIRONMENT") !== 'prod') {
     $dotenv = Dotenv\Dotenv::create(__DIR__ . "/..");
     $dotenv->load();
 }
+
 
 // Instantiate Slim container and set debugging/error settings
 // Dependency container instance is injected into the Slim app's constructor???
@@ -69,3 +70,4 @@ $app->get('/hello', function($request) {
 
 // Run app
 $app->run();
+
