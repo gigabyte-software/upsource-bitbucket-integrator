@@ -4,6 +4,8 @@ namespace Services;
 
 use GuzzleHttp\Client;
 
+define("UPSOURCE_PROJECT_BASE_URL", "http://upsource.warwickestates.net:8080/~rpc/");
+
 class UpsourceService
 {
 
@@ -20,6 +22,12 @@ class UpsourceService
     private $password;
 
     // Use constructor so that a new (guzzle) client is always created when UpsourceService is instantiated
+    /**
+     * UpsourceService constructor.
+     * @param Client $httpClient
+     * @param string $username
+     * @param string $password
+     */
     public function __construct(Client $httpClient, string $username, string $password)
     {
         // Need a guzzle client, which is an http client that can make http requests (like Chrome)
@@ -31,12 +39,17 @@ class UpsourceService
 //        $this->httpClient = $this->createClient($username, $password);
     }
 
-
+    /**
+     * @param string $upsourceProjectId
+     * @param string $bitbucketBranchName
+     * @return integer|string
+     */
     private function getUpsourceReviewId(string $upsourceProjectId, string $bitbucketBranchName) : string
     {
         // Upsource uses RPC (remote Procedural API) and expects all requests to be POST
-        $guzzleResponse = $this->httpClient->post('http://upsource.warwickestates.net:8080/~rpc/getBranchInfo',
+        $guzzleResponse = $this->httpClient->post('getBranchInfo',
             [
+                'base_uri' => UPSOURCE_PROJECT_BASE_URL,
                 'auth' => $this->getAuth(),
                 'json' => [
                     "projectId" => $upsourceProjectId,
@@ -44,6 +57,7 @@ class UpsourceService
                 ],
             ]
         );
+
         // Getting contents of body from guzzleResponse (Upsource Response)
         $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
 
@@ -61,7 +75,6 @@ class UpsourceService
      */
     public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName) : string
     {
-
         $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
 
         // Extract reviewId
@@ -70,8 +83,9 @@ class UpsourceService
         // if upsourceReviewId doesn't already exist, create a review. If not, pass to url and append description.
         if (!$upsourceReviewId) {
             // Creating POST request createReview and passing in upsourceProjectId (name) and bitbucketBranchName to Upsource
-            $guzzleResponse = $this->httpClient->post('http://upsource.warwickestates.net:8080/~rpc/createReview',
+            $guzzleResponse = $this->httpClient->post('createReview',
                 [
+                    'base_uri' => UPSOURCE_PROJECT_BASE_URL,
                     'auth' => $this->getAuth(),
                     'json' => [
                         "projectId" => $upsourceProjectId,
@@ -87,9 +101,7 @@ class UpsourceService
 
             // Extract upsourceReviewId from createReview POST request to UpSource
             $upsourceReviewId = $upsourceResponseArray['result']['reviewId']['reviewId'];
-
         }
-
 
         // Add projectId (project name) to base of url and append the upsourceReviewId (e.g. HDR-CR-65)
         $upsourceBaseUrl = "http://upsource.warwickestates.net:8080/%s/review/%s";
@@ -99,6 +111,10 @@ class UpsourceService
     }
 
     // Cpnvert bitbucketRepositoryName to upsourceProjectId
+    /**
+     * @param string $bitbucketRepositoryName
+     * @return string
+     */
     private function getUpsourceProjectId(string $bitbucketRepositoryName) : string
     {
         // map Bitbucket's repository name to Upsource's projectId todo - generalise this?
@@ -109,7 +125,7 @@ class UpsourceService
             'box' => 'hydra',
             'mobile' => 'unicorn',
             'environments' => 'unicorn',
-            'unicron-domain' => 'unicorn',
+            'unicorn-domain' => 'unicorn',
             'fe1' => 'unicorn',
             'micro1' => 'unicorn',
             'infra' => 'unicorn',
@@ -120,6 +136,9 @@ class UpsourceService
         return $repositoryMap[$bitbucketRepositoryName];
     }
 
+    /**
+     * @return array
+     */
     private function getAuth() : array
     {
         return [

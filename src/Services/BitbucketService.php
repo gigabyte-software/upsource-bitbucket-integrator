@@ -4,6 +4,8 @@ namespace Services;
 
 use GuzzleHttp\Client;
 
+define("BITBUCKET_BRANCH_API", "https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/");
+
 class BitbucketService
 {
     /** @var Client */
@@ -38,9 +40,12 @@ class BitbucketService
     private function getFirstPullRequestTitle(string $id) : string
     {
         // Get all pull request data
-        $guzzleResponse = $this->httpClient->request("GET",
-            "https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/pullrequests/$id",
-            ['auth' => $this->getAuth()]);
+        $guzzleResponse = $this->httpClient->request("GET", "pullrequests/$id",
+            [
+                'base_uri' => BITBUCKET_BRANCH_API,
+                'auth' => $this->getAuth(),
+            ]
+        );
 
         // Getting contents of body from guzzleResponse (a long line of json text)
         $pullRequestBody = $guzzleResponse->getBody()->getContents();
@@ -59,9 +64,12 @@ class BitbucketService
     private function getPullRequestDescription(string $id) : string
     {
         // Get all pull request data
-        $guzzleResponse = $this->httpClient->request("GET",
-            'https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/pullrequests/' . $id,
-            ['auth' => $this->getAuth()]);
+        $guzzleResponse = $this->httpClient->request("GET", 'pullrequests/' . $id,
+            [
+                'base_uri' => BITBUCKET_BRANCH_API,
+                'auth' => $this->getAuth(),
+            ]
+        );
 
         // Getting contents of body from guzzleResponse (json text)
         $pullRequestBody = $guzzleResponse->getBody()->getContents();
@@ -86,10 +94,9 @@ class BitbucketService
 
         // Create PUT request from guzzleResponse, pass in method (required), uri and an array (can be array of arrays -
         // auth and json are preset acceptable arrays). $id and $description are passed into method. $title from getReq
-        $this->httpClient->request(
-            "PUT",
-            'https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/pullrequests/' . $id,
+        $this->httpClient->request("PUT", 'pullrequests/' . $id,
             [
+                'base_uri' => BITBUCKET_BRANCH_API,
                 'auth' => $this->getAuth(),
                 'json' => [
                     'id' => $id,
@@ -101,6 +108,9 @@ class BitbucketService
         );
     }
 
+    /**
+     * @return array
+     */
     private function getAuth() : array
     {
         return [

@@ -1,9 +1,12 @@
 <?php
 
 
+use Controllers\HookController;
 use GuzzleHttp\Client;
+use Psr\Container\ContainerInterface;
 use Services\BitbucketService;
 use Services\UpsourceService;
+use Slim\App;
 
 require_once '../vendor/autoload.php';
 // Load environment variables (for user and pass) from .env file
@@ -22,7 +25,7 @@ $container = new \Slim\Container([
         'debug' => true],
 ]);
 
-$app = new \Slim\App($container);
+$app = new App($container);
 
 // Retrieving container (not sure why this is needed)
 $container = $app->getContainer();
@@ -53,8 +56,12 @@ $container[UpsourceService::class] = function () {
     return $upsourceService;
 };
 
-$container['\Controllers\HookController'] = function (\Psr\Container\ContainerInterface $container) {
-    return new \Controllers\HookController(
+/**
+ * @param ContainerInterface $container
+ * @return HookController
+ */
+$container['\Controllers\HookController'] = function (ContainerInterface $container) {
+    return new HookController(
         $container->get(UpsourceService::class),
         $container->get(BitbucketService::class)
     );
@@ -64,7 +71,8 @@ $container['\Controllers\HookController'] = function (\Psr\Container\ContainerIn
 // Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
 $app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
 
-$app->get('/hello', function($request) {
+// Test Page
+$app->get('/hello', function() {
     echo 'hello';
 });
 

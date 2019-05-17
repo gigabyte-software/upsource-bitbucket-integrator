@@ -4,7 +4,6 @@ namespace Controllers;
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-use Psr\Container\ContainerInterface;
 use Services\BitbucketService;
 use Services\UpsourceService;
 
@@ -16,6 +15,11 @@ class HookController
     /** @var BitbucketService */
     private $bitbucketService;
 
+    /**
+     * HookController constructor.
+     * @param UpsourceService  $upsourceService
+     * @param BitbucketService $bitbucketService
+     */
     public function __construct(UpsourceService $upsourceService, BitbucketService $bitbucketService)
     {
         $this->upsourceService = $upsourceService;
@@ -23,6 +27,11 @@ class HookController
     }
 
     // Take webhook POST request from Bitbucket and make a POST request to createReview in an UpsourceService
+
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function createUpsourceReview(Request $request) : Response
     {
         // Get contents of body from Bitbucket POST request (webhook) and decode
