@@ -9,7 +9,7 @@ use Services\BitbucketService;
 use Services\UpsourceService;
 use Slim\App;
 
-// Load environment variables (for user and pass) from .env file
+// Load environment variables (for user and pass) from .env file if running locally, otherwise they are set in Heroku
 if (getenv("ENVIRONMENT") !== 'prod') {
     $dotenv = Dotenv\Dotenv::create(__DIR__ . "/..");
     $dotenv->load();
@@ -33,7 +33,7 @@ $container = $app->getContainer();
 // Add bitbucketService to Slim container
 $container[BitbucketService::class] = function () {
 
-    // Get username and password from .env file
+    // Get username and password from environment variables
     $username = getenv('BITBUCKET_USERNAME');
     $password = getenv('BITBUCKET_PASSWORD');
 
