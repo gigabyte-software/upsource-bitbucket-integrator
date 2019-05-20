@@ -1,12 +1,15 @@
 <?php
 
-use GuzzleHttp\Client;
-use Services\BitbucketService;
-use Services\UpsourceService;
-
 require_once '../vendor/autoload.php';
 
-//// Load environment variables (for user and pass) from .env file
+use Controllers\HookController;
+use GuzzleHttp\Client;
+use Psr\Container\ContainerInterface;
+use Services\BitbucketService;
+use Services\UpsourceService;
+use Slim\App;
+
+// Load environment variables (for user and pass) from .env file if running locally, otherwise they are set in Heroku
 if (getenv("ENVIRONMENT") !== 'prod') {
     $dotenv = Dotenv\Dotenv::create(__DIR__ . "/..");
     $dotenv->load();
@@ -18,10 +21,11 @@ $container = new \Slim\Container([
     'settings' => [
         'displayErrorDetails' => true,
         'determineRouteBeforeAppMiddleware' => true,
-        'debug' => true],
+        'debug' => true
+    ],
 ]);
 
-$app = new \Slim\App($container);
+$app = new App($container);
 
 // Retrieving container (not sure why this is needed)
 $container = $app->getContainer();
@@ -29,7 +33,7 @@ $container = $app->getContainer();
 // Add bitbucketService to Slim container
 $container[BitbucketService::class] = function () {
 
-    // Get username and password from .env file
+    // Get username and password from environment variables
     $username = getenv('BITBUCKET_USERNAME');
     $password = getenv('BITBUCKET_PASSWORD');
 
@@ -42,7 +46,7 @@ $container[BitbucketService::class] = function () {
 // Add upsourceService to Slim container
 $container[UpsourceService::class] = function () {
 
-    // Get username and password from .env file
+    // Get username and password from environment variables
     $username = getenv('UPSOURCE_USERNAME');
     $password = getenv('UPSOURCE_PASSWORD');
 
@@ -52,20 +56,21 @@ $container[UpsourceService::class] = function () {
     return $upsourceService;
 };
 
-$container['\Controllers\HookController'] = function (\Psr\Container\ContainerInterface $container) {
-    return new \Controllers\HookController(
+/**
+ * @param ContainerInterface $container
+ * @return HookController
+ */
+$container['\Controllers\HookController'] = function (ContainerInterface $container) {
+    return new HookController(
         $container->get(UpsourceService::class),
         $container->get(BitbucketService::class)
     );
 };
 
-// Route for dealing with Bitbuckets POST request (Webhook) - Use Postman to simulate and see responses.
-// Telling app to accept POST requests to this URL (can't show in chrome as that's a GET request)
+// Route for dealing with Bitbuckets POST request (Webhook) - app accepts POST requests to this URL
+// (can't show in chrome as that's a GET request)
 $app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
-
-$app->get('/hello', function($request) {
-    echo 'hello';
-});
 
 // Run app
 $app->run();
+

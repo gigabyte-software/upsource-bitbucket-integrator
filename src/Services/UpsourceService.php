@@ -6,9 +6,10 @@ use GuzzleHttp\Client;
 
 class UpsourceService
 {
+    /** @var string */
+    private const UPSOURCE_PROJECT_BASE_URL = "http://upsource.warwickestates.net:8080/~rpc/";
 
     /**
-     * Define $httpClient as private so it is only available within this class
      * @var Client
      */
     private $httpClient;
@@ -20,6 +21,12 @@ class UpsourceService
     private $password;
 
     // Use constructor so that a new (guzzle) client is always created when UpsourceService is instantiated
+    /**
+     * UpsourceService constructor.
+     * @param Client $httpClient
+     * @param string $username
+     * @param string $password
+     */
     public function __construct(Client $httpClient, string $username, string $password)
     {
         // Need a guzzle client, which is an http client that can make http requests (like Chrome)
@@ -27,46 +34,56 @@ class UpsourceService
         $this->httpClient = $httpClient;
         $this->username = $username;
         $this->password = $password;
-
-//        $this->httpClient = $this->createClient($username, $password);
     }
 
     /**
-     * @param integer|string $projectId
-     * @param string $branchName
+     * @param string $bitbucketRepositoryName
+     * @param string $bitbucketBranchName
      * @return string
      */
-    public function createUpsourceReview(string $projectId, string $branchName) : string
+    public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName) : string
     {
-        // Creating POST request createReview and passing in projectId (name) and branch name to Upsource
-        $guzzleResponse = $this->httpClient->post('http://upsource.warwickestates.net:8080/~rpc/createReview',
+        $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
 
-            [
-                'auth' => $this->getAuth(),
-                'json' => [
-                    "projectId" => $projectId,
-                    "branch" => $branchName,
-                ],
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (Upsource Response)
-        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
         // Extract reviewId
-        $reviewId = $upsourceResponseArray['result']['reviewId']['reviewId'];
-        // Add projectId (project name) to base of url and append the reviewId (HDR-CR-65)
-        $upsourceBaseUrl = "http://upsource.warwickestates.net:8080/%s/review/%s";
-        $upsourceReviewUrl = sprintf($upsourceBaseUrl, $projectId, $reviewId);
+        $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $bitbucketBranchName);
 
-        var_dump($upsourceReviewUrl);
+        // if upsourceReviewId doesn't already exist, create a review. If not, pass to url and append description.
+        if (!$upsourceReviewId) {
+            // Creating POST request createReview and passing in upsourceProjectId (name) and bitbucketBranchName to Upsource
+            $guzzleResponse = $this->httpClient->post('createReview',
+                [
+                    'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                    'auth' => $this->getAuth(),
+                    'json' => [
+                        "projectId" => $upsourceProjectId,
+                        "branch" => $bitbucketBranchName,
+                    ],
+                ]
+            );
+
+            // Getting contents of body from guzzleResponse (Upsource Response)
+            $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+            // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
+            $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+            // Extract upsourceReviewId from createReview POST request to UpSource
+            $upsourceReviewId = $upsourceResponseArray['result']['reviewId']['reviewId'];
+        }
+
+        // Add projectId (project name) to base of url and append the upsourceReviewId (e.g. HDR-CR-65)
+        $upsourceBaseUrl = "http://upsource.warwickestates.net:8080/%s/review/%s";
+        $upsourceReviewUrl = sprintf($upsourceBaseUrl, $upsourceProjectId, $upsourceReviewId);
 
         return $upsourceReviewUrl;
     }
 
-    // Cpnvert bitbucketRepositoryName to upsourceProjectId
-    public function getUpsourceProjectId(string $bitbucketRepositoryName) : string
+    /**
+     * Convert bitbucketRepositoryName to upsourceProjectId
+     * @param string $bitbucketRepositoryName
+     * @return string
+     */
+    private function getUpsourceProjectId(string $bitbucketRepositoryName) : string
     {
         // map Bitbucket's repository name to Upsource's projectId todo - generalise this?
         $repositoryMap = [
@@ -76,18 +93,49 @@ class UpsourceService
             'box' => 'hydra',
             'mobile' => 'unicorn',
             'environments' => 'unicorn',
-            'unicron-domain' => 'unicorn',
+            'unicorn-domain' => 'unicorn',
             'fe1' => 'unicorn',
             'micro1' => 'unicorn',
             'infra' => 'unicorn',
             'review-creator' => 'review-creator',
         ];
 
-        $upsourceProjectId = $repositoryMap[$bitbucketRepositoryName];
-
-        return $upsourceProjectId;
+        // Return upsourceProjectId
+        return $repositoryMap[$bitbucketRepositoryName];
     }
 
+    /**
+     * @param string $upsourceProjectId
+     * @param string $bitbucketBranchName
+     * @return integer|string
+     */
+    private function getUpsourceReviewId(string $upsourceProjectId, string $bitbucketBranchName) : string
+    {
+        // Upsource uses RPC (remote Procedural API) and expects all requests to be POST
+        $guzzleResponse = $this->httpClient->post('getBranchInfo',
+            [
+                'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                'auth' => $this->getAuth(),
+                'json' => [
+                    "projectId" => $upsourceProjectId,
+                    'branch' => $bitbucketBranchName,
+                ],
+            ]
+        );
+
+        // Getting contents of body from guzzleResponse (Upsource Response)
+        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+
+        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
+        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+        // Extract upsourceReviewId and return
+        return $upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'];
+    }
+
+    /**
+     * @return array
+     */
     private function getAuth() : array
     {
         return [
