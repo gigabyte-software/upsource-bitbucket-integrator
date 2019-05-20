@@ -4,13 +4,12 @@ namespace Services;
 
 use GuzzleHttp\Client;
 
-define("UPSOURCE_PROJECT_BASE_URL", "http://upsource.warwickestates.net:8080/~rpc/");
-
 class UpsourceService
 {
+    /** @var string */
+    private const UPSOURCE_PROJECT_BASE_URL = "http://upsource.warwickestates.net:8080/~rpc/";
 
     /**
-     * Define $httpClient as private so it is only available within this class
      * @var Client
      */
     private $httpClient;
@@ -35,37 +34,6 @@ class UpsourceService
         $this->httpClient = $httpClient;
         $this->username = $username;
         $this->password = $password;
-
-//        $this->httpClient = $this->createClient($username, $password);
-    }
-
-    /**
-     * @param string $upsourceProjectId
-     * @param string $bitbucketBranchName
-     * @return integer|string
-     */
-    private function getUpsourceReviewId(string $upsourceProjectId, string $bitbucketBranchName) : string
-    {
-        // Upsource uses RPC (remote Procedural API) and expects all requests to be POST
-        $guzzleResponse = $this->httpClient->post('getBranchInfo',
-            [
-                'base_uri' => UPSOURCE_PROJECT_BASE_URL,
-                'auth' => $this->getAuth(),
-                'json' => [
-                    "projectId" => $upsourceProjectId,
-                    'branch' => $bitbucketBranchName,
-                ],
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (Upsource Response)
-        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
-
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
-
-        // Extract upsourceReviewId and return
-        return $upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'];
     }
 
     /**
@@ -85,7 +53,7 @@ class UpsourceService
             // Creating POST request createReview and passing in upsourceProjectId (name) and bitbucketBranchName to Upsource
             $guzzleResponse = $this->httpClient->post('createReview',
                 [
-                    'base_uri' => UPSOURCE_PROJECT_BASE_URL,
+                    'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
                     'auth' => $this->getAuth(),
                     'json' => [
                         "projectId" => $upsourceProjectId,
@@ -110,8 +78,8 @@ class UpsourceService
         return $upsourceReviewUrl;
     }
 
-    // Cpnvert bitbucketRepositoryName to upsourceProjectId
     /**
+     * Convert bitbucketRepositoryName to upsourceProjectId
      * @param string $bitbucketRepositoryName
      * @return string
      */
@@ -134,6 +102,35 @@ class UpsourceService
 
         // Return upsourceProjectId
         return $repositoryMap[$bitbucketRepositoryName];
+    }
+
+    /**
+     * @param string $upsourceProjectId
+     * @param string $bitbucketBranchName
+     * @return integer|string
+     */
+    private function getUpsourceReviewId(string $upsourceProjectId, string $bitbucketBranchName) : string
+    {
+        // Upsource uses RPC (remote Procedural API) and expects all requests to be POST
+        $guzzleResponse = $this->httpClient->post('getBranchInfo',
+            [
+                'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                'auth' => $this->getAuth(),
+                'json' => [
+                    "projectId" => $upsourceProjectId,
+                    'branch' => $bitbucketBranchName,
+                ],
+            ]
+        );
+
+        // Getting contents of body from guzzleResponse (Upsource Response)
+        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+
+        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
+        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+        // Extract upsourceReviewId and return
+        return $upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'];
     }
 
     /**
