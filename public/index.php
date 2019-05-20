@@ -71,9 +71,6 @@ $container['\Controllers\HookController'] = function (ContainerInterface $contai
 // (can't show in chrome as that's a GET request)
 $app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
 
-// Doesn't seem to work...?
-//$app->post('/bitbucket', \Controllers\HookController::class . ':createUpsourceReview');
-
 // Run app
 $app->run();
 
