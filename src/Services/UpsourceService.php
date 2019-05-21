@@ -89,20 +89,48 @@ class UpsourceService
      */
     private function getUpsourceProjectId(string $bitbucketRepositoryName): string
     {
-        // map Bitbucket's repository name to Upsource's projectId todo - generalise this?
-        $repositoryMap = [
-            'hydra' => 'hydra',
-            'frontend' => 'hydra',
-            'development-performance-reports' => 'hydra',
-            'box' => 'hydra',
-            'mobile' => 'unicorn',
-            'environments' => 'unicorn',
-            'unicorn-domain' => 'unicorn',
-            'fe1' => 'unicorn',
-            'micro1' => 'unicorn',
-            'infra' => 'unicorn',
-            'review-creator' => 'review-creator',
-        ];
+
+        // Get all project (no argument required) - Upsource wants a GET this time!!
+        $guzzleResponse = $this->httpClient->get('getAllProjects',
+            [
+                'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                'auth' => $this->getAuth(),
+                'json' => [],
+            ]
+        );
+
+        // Getting contents of body from guzzleResponse (Upsource Response)
+        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+
+        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
+        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+        // Initialise repository map
+        $repositoryMap = [];
+
+        // Loop through projects on upsource and get VCS links from bitbucket (or github)
+        foreach ($upsourceResponseArray['result']['project'] as $project) {
+            $projectId = $project['projectId'];
+
+            // Get all projectVcsLinks using a POST request again (pass in projectId's)
+            $guzzleResponse = $this->httpClient->post('getProjectVcsLinks',
+                [
+                    'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                    'auth' => $this->getAuth(),
+                    'json' => [
+                        'projectId' => $projectId,
+                    ],
+                ]
+            );
+            // Getting contents of body from guzzleResponse (Upsource Response) and decode
+            $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+            $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+            // Loop through Bitbucket repositories and map to Upsource projectId's
+            foreach ($upsourceResponseArray['result']['repo'] as $repository) {
+                $repositoryMap[$repository['id']] = $projectId;
+            }
+        }
 
         // Return upsourceProjectId
         return $repositoryMap[$bitbucketRepositoryName];

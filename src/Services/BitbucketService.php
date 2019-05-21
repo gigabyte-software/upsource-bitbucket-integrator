@@ -7,8 +7,6 @@ use GuzzleHttp\Client;
 class BitbucketService
 {
     /** @var string */
-//    private const BITBUCKET_BRANCH_API = "https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/";
-    // todo change this to BITBUCKET_API then add username and repo name (or repoFullName)
     private const BITBUCKET_API = "https://api.bitbucket.org/2.0/repositories/";
 
     /** @var Client */
@@ -74,10 +72,8 @@ class BitbucketService
     private function getPullRequestTitle(string $fullRepositoryName, string $id): string
     {
         $baseUrl = $this->getBitbucketRepositoryUrl($fullRepositoryName);
-        // Get all pull request data
 
-//        var_dump($baseUrl . "/pullrequests/$id");exit;
-
+        // Get all pull request data - can't start guzzle url with a /
         $guzzleResponse = $this->httpClient->request("GET", "pullrequests/$id",
             [
                 'base_uri' => $baseUrl,
