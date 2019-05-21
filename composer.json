@@ -1,16 +1,16 @@
 {
-    "require": {
-        "slim/slim": "^3.12",
-        "guzzlehttp/guzzle": "~6.0",
-        "juliangut/slim-controller": "^1.5",
-        "vlucas/phpdotenv": "^3.3"
-    },
-    "require-dev": {
+  "require": {
+    "slim/slim": "^3.12",
+    "guzzlehttp/guzzle": "~6.0",
+    "juliangut/slim-controller": "^1.5",
+    "vlucas/phpdotenv": "^3.3"
+  },
+  "require-dev": {
     "heroku/heroku-buildpack-php": "^155.0"
-},
-    "autoload": {
-        "psr-4": {
-            "": "src/"
-        }
+  },
+  "autoload": {
+    "psr-4": {
+      "": "src/"
     }
+  }
 }

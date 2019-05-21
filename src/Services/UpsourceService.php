@@ -21,6 +21,7 @@ class UpsourceService
     private $password;
 
     // Use constructor so that a new (guzzle) client is always created when UpsourceService is instantiated
+
     /**
      * UpsourceService constructor.
      * @param Client $httpClient
@@ -41,12 +42,15 @@ class UpsourceService
      * @param string $bitbucketBranchName
      * @return string
      */
-    public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName) : string
+    public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName): string
     {
         $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
 
+        // Extract upsourceBranchName (not always exactly the same as the bitbucketBranchName)
+        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $bitbucketBranchName);
+
         // Extract reviewId
-        $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $bitbucketBranchName);
+        $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $upsourceBranchName);
 
         // if upsourceReviewId doesn't already exist, create a review. If not, pass to url and append description.
         if (!$upsourceReviewId) {
@@ -57,7 +61,7 @@ class UpsourceService
                     'auth' => $this->getAuth(),
                     'json' => [
                         "projectId" => $upsourceProjectId,
-                        "branch" => $bitbucketBranchName,
+                        "branch" => $upsourceBranchName, // todo fix this? - changed it from bitbucketBranchName to upsourceBranchName
                     ],
                 ]
             );
@@ -83,7 +87,7 @@ class UpsourceService
      * @param string $bitbucketRepositoryName
      * @return string
      */
-    private function getUpsourceProjectId(string $bitbucketRepositoryName) : string
+    private function getUpsourceProjectId(string $bitbucketRepositoryName): string
     {
         // map Bitbucket's repository name to Upsource's projectId todo - generalise this?
         $repositoryMap = [
@@ -105,11 +109,41 @@ class UpsourceService
     }
 
     /**
+     * Find the upsourceBranchName from the bitbucketBranchName (they are not always equal)
      * @param string $upsourceProjectId
      * @param string $bitbucketBranchName
-     * @return integer|string
+     * @return string
      */
-    private function getUpsourceReviewId(string $upsourceProjectId, string $bitbucketBranchName) : string
+    private function getUpsourceBranchName(string $upsourceProjectId, string $bitbucketBranchName): string
+    {
+        $guzzleResponse = $this->httpClient->post('findBranches',
+            [
+                'base_uri' => self::UPSOURCE_PROJECT_BASE_URL,
+                'auth' => $this->getAuth(),
+                'json' => [
+                    'projectId' => $upsourceProjectId,
+                    'pattern' => $bitbucketBranchName,
+                    'limit' => 100,
+                ],
+            ]
+        );
+
+        // Getting contents of body from guzzleResponse (Upsource Response)
+        $upsourceResponseBody = $guzzleResponse->getBody()->getContents();
+
+        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
+        $upsourceResponseArray = json_decode($upsourceResponseBody, true);
+
+        // return upsourceBranchName
+        return $upsourceResponseArray['result']['branches'][0];
+    }
+
+    /**
+     * @param string $upsourceProjectId
+     * @param string $upsourceBranchName
+     * @return string|void
+     */
+    private function getUpsourceReviewId(string $upsourceProjectId, string $upsourceBranchName): ?string
     {
         // Upsource uses RPC (remote Procedural API) and expects all requests to be POST
         $guzzleResponse = $this->httpClient->post('getBranchInfo',
@@ -118,7 +152,7 @@ class UpsourceService
                 'auth' => $this->getAuth(),
                 'json' => [
                     "projectId" => $upsourceProjectId,
-                    'branch' => $bitbucketBranchName,
+                    'branch' => $upsourceBranchName,
                 ],
             ]
         );
@@ -130,13 +164,17 @@ class UpsourceService
         $upsourceResponseArray = json_decode($upsourceResponseBody, true);
 
         // Extract upsourceReviewId and return
-        return $upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'];
+        if(isset($upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'])) {
+            return $upsourceResponseArray['result']['reviewInfo']['reviewId']['reviewId'];
+        } else {
+            return null;
+        }
     }
 
     /**
      * @return array
      */
-    private function getAuth() : array
+    private function getAuth(): array
     {
         return [
             $this->username,
