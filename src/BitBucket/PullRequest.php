@@ -60,7 +60,7 @@ class PullRequest
     public static function createFromJson(string $jsonString) : PullRequest
     {
         // json_decode the json string
-        $pullRequestWebhook = json_decode($jsonString);
+        $pullRequestWebhook = json_decode($jsonString, true);
 
         // Set variables using json data from webhook
         $id = $pullRequestWebhook['pullrequest']['id'];
@@ -70,10 +70,8 @@ class PullRequest
         $title = $pullRequestWebhook['pullrequest']['title'];
         $description = $pullRequestWebhook['pullrequest']['description'];
 
-
-        var_dump($pullRequestWebhook);exit;
         // create new PullRequest object by doing new PullRequest(...vars required to construct the pull request...)
-        return new self($id, );
+        return new self($id, $fullRepositoryName, $repositoryName, $branchName, $title, $description);
         // return the PullRequest object
     }
 }
