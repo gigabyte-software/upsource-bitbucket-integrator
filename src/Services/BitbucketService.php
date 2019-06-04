@@ -63,6 +63,10 @@ class BitbucketService
         );
     }
 
+    public function checkForMerge() {
+        // todo - check for merge and if branch was closed?
+    }
+
     /**
      * @param string $fullRepositoryName
      * @param string $id

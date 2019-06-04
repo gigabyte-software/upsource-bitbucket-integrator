@@ -71,6 +71,10 @@ $container['\Controllers\HookController'] = function (ContainerInterface $contai
 // (can't show in chrome as that's a GET request)
 $app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
 
+// Route for dealing with Bitbuckets POST request (Webhook) - app accepts POST requests to this URL
+// (can't show in chrome as that's a GET request)
+$app->post('/upsource/close-review', '\Controllers\HookController:closeUpsourceReview');
+
 // Run app
 $app->run();
 
