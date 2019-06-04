@@ -80,8 +80,7 @@ class HookController
         // Update Bitbucket description with upsource url (pass in bitbucket's full repo name, pullRequestId - also
         // need title and current description to append but these are retrieved in BitbucketService)
         $this->bitbucketService->changePullRequestDescription(
-            $pullRequest->getFullRepositoryName(),
-            $pullRequest->getId(),
+            $pullRequest,
             $upsourceReviewUrl
         );
 

@@ -210,8 +210,6 @@ class UpsourceService
         // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
         $upsourceResponseArray = json_decode($upsourceResponseBody, true);
 
-        var_dump($upsourceResponseArray['result']['branches'][0]);
-
         // return upsourceBranchName
         return $upsourceResponseArray['result']['branches'][0];
     }
