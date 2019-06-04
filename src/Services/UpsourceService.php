@@ -2,6 +2,7 @@
 
 namespace Services;
 
+use BitBucket\PullRequest;
 use GuzzleHttp\Client;
 
 class UpsourceService
@@ -36,16 +37,15 @@ class UpsourceService
     }
 
     /**
-     * @param string $bitbucketRepositoryName
-     * @param string $bitbucketBranchName
+     * @param PullRequest $pullRequest
      * @return string
      */
-    public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName): string
+    public function createUpsourceReview(PullRequest $pullRequest): string
     {
-        $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
+        $upsourceProjectId = $this->getUpsourceProjectId($pullRequest->getRepositoryName());
 
         // Extract upsourceBranchName (not always exactly the same as the bitbucketBranchName)
-        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $bitbucketBranchName);
+        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $pullRequest->getBranchName());
 
         // Extract reviewId
         $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $upsourceBranchName);

@@ -79,8 +79,11 @@ class HookController
 
         // Update Bitbucket description with upsource url (pass in bitbucket's full repo name, pullRequestId - also
         // need title and current description to append but these are retrieved in BitbucketService)
-        $this->bitbucketService->changePullRequestDescription($bitbucketRepositoryFullName, $bitbucketPullRequestId,
-            $upsourceReviewUrl);
+        $this->bitbucketService->changePullRequestDescription(
+            $pullRequest->getFullRepositoryName(),
+            $pullRequest->getId(),
+            $upsourceReviewUrl
+        );
 
         // Return response once all logic in app is completed, upsource review has been created and retrieved link
         return new \Slim\Http\Response();

@@ -54,6 +54,56 @@ class PullRequest
     }
 
     /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBranchName(): string
+    {
+        return $this->branchName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFullRepositoryName(): string
+    {
+        return $this->fullRepositoryName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRepositoryName(): string
+    {
+        return $this->repositoryName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+
+
+    /**
      * @param string $jsonString
      * @return PullRequest
      */
