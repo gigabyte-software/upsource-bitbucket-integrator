@@ -115,9 +115,7 @@ class UpsourceService
         // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
         $upsourceResponseArray = json_decode($upsourceResponseBody, true);
 
-        var_dump($upsourceResponseArray);exit;
-
-        // Extract upsourceReviewId from createReview POST request to UpSource
+        // Extract upsourceReviewId from createReview POST request to UpSource todo - still needed?
         $upsourceReviewId = $upsourceResponseArray['result']['reviewId']['reviewId'];
     }
 
