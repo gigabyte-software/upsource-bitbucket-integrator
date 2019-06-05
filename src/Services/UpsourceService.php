@@ -85,7 +85,7 @@ class UpsourceService
      * @param string $bitbucketBranchName
      * @return void
      */
-    public function closeUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName)
+    public function closeReview(string $bitbucketRepositoryName, string $bitbucketBranchName)
     {
         $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
 

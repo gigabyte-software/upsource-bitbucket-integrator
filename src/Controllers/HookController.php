@@ -105,7 +105,7 @@ class HookController
 
         $this->upsourceService->getReviews($bitbucketRepositoryName); //todo - just testing getReviews
 
-//        $this->upsourceService->closeUpsourceReview($bitbucketRepositoryName, $bitbucketBranchName);
+//        $this->upsourceService->closeReview($bitbucketRepositoryName, $bitbucketBranchName);
 
         // Return response once all logic in app is completed, upsource review has been created and retrieved link
         return new \Slim\Http\Response();

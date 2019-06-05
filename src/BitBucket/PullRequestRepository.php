@@ -24,6 +24,4 @@ class PullRequestRepository
     {
         $this->bitbucketService = $bitbucketService;
     }
-
-
 }

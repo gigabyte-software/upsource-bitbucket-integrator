@@ -45,15 +45,6 @@ class PullRequest
     }
 
     /**
-     * @param string $content
-     * @return void
-     */
-    public function appendToDescription(string $content) : void
-    {
-
-    }
-
-    /**
      * @return int
      */
     public function getId(): int
@@ -101,8 +92,6 @@ class PullRequest
         return $this->description;
     }
 
-
-
     /**
      * @param string $jsonString
      * @return PullRequest
@@ -123,5 +112,14 @@ class PullRequest
         // create new PullRequest object by doing new PullRequest(...vars required to construct the pull request...)
         return new self($id, $fullRepositoryName, $repositoryName, $branchName, $title, $description);
         // return the PullRequest object
+    }
+
+    /**
+     * @param string $content
+     * @return void
+     */
+    public function appendToDescription(string $content) : void
+    {
+
     }
 }
