@@ -2,6 +2,7 @@
 
 namespace Services;
 
+use BitBucket\PullRequest;
 use GuzzleHttp\Client;
 
 class UpsourceService
@@ -36,16 +37,15 @@ class UpsourceService
     }
 
     /**
-     * @param string $bitbucketRepositoryName
-     * @param string $bitbucketBranchName
+     * @param PullRequest $pullRequest
      * @return string
      */
-    public function createUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName): string
+    public function createUpsourceReview(PullRequest $pullRequest): string
     {
-        $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
+        $upsourceProjectId = $this->getUpsourceProjectId($pullRequest->getRepositoryName());
 
         // Extract upsourceBranchName (not always exactly the same as the bitbucketBranchName)
-        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $bitbucketBranchName);
+        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $pullRequest->getBranchName());
 
         // Extract reviewId
         $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $upsourceBranchName);
@@ -85,7 +85,7 @@ class UpsourceService
      * @param string $bitbucketBranchName
      * @return void
      */
-    public function closeUpsourceReview(string $bitbucketRepositoryName, string $bitbucketBranchName)
+    public function closeReview(string $bitbucketRepositoryName, string $bitbucketBranchName)
     {
         $upsourceProjectId = $this->getUpsourceProjectId($bitbucketRepositoryName);
 
@@ -115,9 +115,7 @@ class UpsourceService
         // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
         $upsourceResponseArray = json_decode($upsourceResponseBody, true);
 
-        var_dump($upsourceResponseArray);exit;
-
-        // Extract upsourceReviewId from createReview POST request to UpSource
+        // Extract upsourceReviewId from createReview POST request to UpSource todo - still needed?
         $upsourceReviewId = $upsourceResponseArray['result']['reviewId']['reviewId'];
     }
 
@@ -211,8 +209,6 @@ class UpsourceService
 
         // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
         $upsourceResponseArray = json_decode($upsourceResponseBody, true);
-
-        var_dump($upsourceResponseArray['result']['branches'][0]);
 
         // return upsourceBranchName
         return $upsourceResponseArray['result']['branches'][0];

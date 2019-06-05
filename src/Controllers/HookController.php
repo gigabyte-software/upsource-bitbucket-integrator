@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use BitBucket\PullRequest;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 use Services\BitbucketService;
@@ -46,13 +47,42 @@ class HookController
 
         /** @var UpsourceService $upsourceService */
         // Create Upsource Review and pass in branchName amd repositoryName from Bitbucket webhook
-        $upsourceReviewUrl = $this->upsourceService->createUpsourceReview($bitbucketRepositoryName,
-        $bitbucketBranchName);
+        $upsourceReviewUrl = $this->upsourceService->createUpsourceReview(
+            $bitbucketRepositoryName,
+            $bitbucketBranchName
+        );
 
         // Update Bitbucket description with upsource url (pass in bitbucket's full repo name, pullRequestId - also
         // need title and current description to append but these are retrieved in BitbucketService)
         $this->bitbucketService->changePullRequestDescription($bitbucketRepositoryFullName, $bitbucketPullRequestId,
             $upsourceReviewUrl);
+
+        // Return response once all logic in app is completed, upsource review has been created and retrieved link
+        return new \Slim\Http\Response();
+    }
+
+
+    /**
+     * Take webhook POST request from Bitbucket and make a POST request to createReview in an UpsourceService
+     * and return URL to Bitbucket
+     * @param Request $request
+     * @return Response
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function createUpsourceReviewWithModel(Request $request): Response
+    {
+        $json = $request->getBody()->getContents();
+        $pullRequest = PullRequest::createFromJson($json);
+
+        /** @var UpsourceService $upsourceService */
+        $upsourceReviewUrl = $this->upsourceService->createUpsourceReview($pullRequest);
+
+        // Update Bitbucket description with upsource url (pass in bitbucket's full repo name, pullRequestId - also
+        // need title and current description to append but these are retrieved in BitbucketService)
+        $this->bitbucketService->changePullRequestDescription(
+            $pullRequest,
+            $upsourceReviewUrl
+        );
 
         // Return response once all logic in app is completed, upsource review has been created and retrieved link
         return new \Slim\Http\Response();
@@ -73,9 +103,9 @@ class HookController
         $bitbucketRepositoryName = $bitbucketPullRequest['pullrequest']['source']['repository']['name'];
         $bitbucketBranchName = $bitbucketPullRequest['pullrequest']['source']['branch']['name'];
 
-        $this->upsourceService->getReviews($bitbucketRepositoryName);
+        $this->upsourceService->getReviews($bitbucketRepositoryName); //todo - just testing getReviews
 
-//        $this->upsourceService->closeUpsourceReview($bitbucketRepositoryName, $bitbucketBranchName);
+//        $this->upsourceService->closeReview($bitbucketRepositoryName, $bitbucketBranchName);
 
         // Return response once all logic in app is completed, upsource review has been created and retrieved link
         return new \Slim\Http\Response();
