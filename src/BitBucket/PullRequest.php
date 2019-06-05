@@ -2,30 +2,37 @@
 
 namespace BitBucket;
 
+use Assert\Assertion;
+
 /**
  * PullRequest Entity
- *
  * @author    Gigabyte Software Limited
  * @copyright Gigabyte Software Limited
  */
 class PullRequest
 {
-    /*** @var int */
+    /** @var int */
     private $id;
 
-    /*** @var string */
-    private $branchName;
-
-    /*** @var string */
+    /**
+     * fullRepositoryName includes Bitbucket username (e.g. gigabyte-software/review-creator)
+     * @var string
+     */
     private $fullRepositoryName;
 
-    /*** @var string */
+    /**
+     * repositoryName should match with upsource (e.g. review-creator)
+     * @var string
+     */
     private $repositoryName;
 
-    /*** @var string */
+    /** @var string */
+    private $branchName;
+
+    /** @var string */
     private $title;
 
-    /*** @var string */
+    /** @var string */
     private $description;
 
     /**
@@ -33,15 +40,29 @@ class PullRequest
      * @param $fullRepositoryName
      * @param $repositoryName
      * @param $branchName
+     * @param $title
+     * @param $description
      */
-    public function __construct($id, $fullRepositoryName, $repositoryName, $branchName, $title, $description)
-    {
+    public function __construct(
+        string $id,
+        string $fullRepositoryName,
+        string $repositoryName,
+        string $branchName,
+        string $title,
+        string $description
+    ) {
         $this->id = $id;
         $this->fullRepositoryName = $fullRepositoryName;
         $this->repositoryName = $repositoryName;
         $this->branchName = $branchName;
         $this->title = $title;
         $this->description = $description;
+
+        // Defensive validation to ensure that there are no spaces in these variables
+        Assertion::notContains($id, ' ');
+        Assertion::notContains($fullRepositoryName, ' ');
+        Assertion::notContains($repositoryName, ' ');
+        Assertion::notContains($branchName, ' ');
     }
 
     /**
@@ -94,9 +115,9 @@ class PullRequest
 
     /**
      * @param string $jsonString
-     * @return PullRequest
+     * @return self
      */
-    public static function createFromJson(string $jsonString) : PullRequest
+    public static function createFromJson(string $jsonString): self
     {
         // json_decode the json string
         $pullRequestWebhook = json_decode($jsonString, true);
@@ -109,17 +130,16 @@ class PullRequest
         $title = $pullRequestWebhook['pullrequest']['title'];
         $description = $pullRequestWebhook['pullrequest']['description'];
 
-        // create new PullRequest object by doing new PullRequest(...vars required to construct the pull request...)
+        // create new PullRequest object
         return new self($id, $fullRepositoryName, $repositoryName, $branchName, $title, $description);
-        // return the PullRequest object
     }
 
     /**
      * @param string $content
      * @return void
      */
-    public function appendToDescription(string $content) : void
+    public function appendToDescription(string $content): void
     {
-
+        // todo
     }
 }
