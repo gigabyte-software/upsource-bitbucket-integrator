@@ -2,13 +2,12 @@
 
 namespace Services;
 
+use BitBucket\PullRequest;
 use GuzzleHttp\Client;
 
 class BitbucketService
 {
     /** @var string */
-//    private const BITBUCKET_BRANCH_API = "https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/";
-    // todo change this to BITBUCKET_API then add username and repo name (or repoFullName)
     private const BITBUCKET_API = "https://api.bitbucket.org/2.0/repositories/";
 
     /** @var Client */
@@ -37,18 +36,18 @@ class BitbucketService
     }
 
     /**
-     * @param string         $fullRepositoryName
-     * @param integer|string $id
-     * @param string         $description
+     * @param PullRequest $pullRequest
+     * @param string      $upsourceUrl
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function changePullRequestDescription(string $fullRepositoryName, $id, string $description): void
+    public function changePullRequestDescription(PullRequest $pullRequest, string $upsourceUrl): void
     {
-        // Get $title and $originalDescription from get request
-        $title = $this->getPullRequestTitle($fullRepositoryName, $id);
-        $originalDescription = $this->getPullRequestDescription($fullRepositoryName, $id);
-        $baseUrl = $this->getBitbucketRepositoryUrl($fullRepositoryName);
+        // Get $title, $id and $originalDescription from $pullRequest object
+        $title = $pullRequest->getTitle();
+        $id = $pullRequest->getId();
+        $originalDescription = $pullRequest->getDescription();
+        $baseUrl = $this->getBitbucketRepositoryUrl($pullRequest->getFullRepositoryName());
 
         // Create PUT request from guzzleResponse, pass in method (required), uri and an array (can be array of arrays -
         // auth and json are preset acceptable arrays). $id and $description are passed into method. $title from getReq
@@ -59,66 +58,14 @@ class BitbucketService
                 'json' => [
                     'id' => $id,
                     'title' => $title,
-                    'description' => $originalDescription . " " . $description,
+                    'description' => $originalDescription . " " . $upsourceUrl,
                 ],
             ]
         );
     }
 
-    /**
-     * @param string $fullRepositoryName
-     * @param string $id
-     * @return string
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    private function getPullRequestTitle(string $fullRepositoryName, string $id): string
-    {
-        $baseUrl = $this->getBitbucketRepositoryUrl($fullRepositoryName);
-        // Get all pull request data
-
-//        var_dump($baseUrl . "/pullrequests/$id");exit;
-
-        $guzzleResponse = $this->httpClient->request("GET", "pullrequests/$id",
-            [
-                'base_uri' => $baseUrl,
-                'auth' => $this->getAuth(),
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (a long line of json text)
-        $pullRequestBody = $guzzleResponse->getBody()->getContents();
-
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $pullRequest = json_decode($pullRequestBody, true);
-
-        // Return the title from $pullRequest
-        return $pullRequest['title'];
-    }
-
-    /**
-     * @param string         $fullRepositoryName
-     * @param integer|string $id
-     * @return string
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    private function getPullRequestDescription(string $fullRepositoryName, string $id): string
-    {
-        $baseUrl = $this->getBitbucketRepositoryUrl($fullRepositoryName);
-        // Get all pull request data
-        $guzzleResponse = $this->httpClient->request("GET", 'pullrequests/' . $id,
-            [
-                'base_uri' => $baseUrl,
-                'auth' => $this->getAuth(),
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (json text)
-        $pullRequestBody = $guzzleResponse->getBody()->getContents();
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $pullRequestArray = json_decode($pullRequestBody, true);
-
-        // Return the description from $pullRequestArray
-        return $pullRequestArray['description'];
+    public function checkForMerge() {
+        // todo - check for merge and if branch was closed?
     }
 
     /**
