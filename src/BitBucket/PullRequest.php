@@ -3,6 +3,7 @@
 namespace BitBucket;
 
 use Assert\Assertion;
+use Assert\Assert;
 
 /**
  * PullRequest Entity
@@ -44,25 +45,25 @@ class PullRequest
      * @param $description
      */
     public function __construct(
-        string $id,
+        int $id,
         string $fullRepositoryName,
         string $repositoryName,
         string $branchName,
         string $title,
         string $description
     ) {
+        // Defensive validation to ensure that there are no spaces in these variables
+        Assertion::integer($id);
+        Assertion::notContains($fullRepositoryName, ' ');
+        Assertion::notContains($repositoryName, ' ');
+        Assertion::notContains($branchName, ' ');
+
         $this->id = $id;
         $this->fullRepositoryName = $fullRepositoryName;
         $this->repositoryName = $repositoryName;
         $this->branchName = $branchName;
         $this->title = $title;
         $this->description = $description;
-
-        // Defensive validation to ensure that there are no spaces in these variables
-        Assertion::notContains($id, ' ');
-        Assertion::notContains($fullRepositoryName, ' ');
-        Assertion::notContains($repositoryName, ' ');
-        Assertion::notContains($branchName, ' ');
     }
 
     /**
