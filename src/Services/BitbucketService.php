@@ -2,12 +2,13 @@
 
 namespace Services;
 
+use BitBucket\PullRequest;
 use GuzzleHttp\Client;
 
 class BitbucketService
 {
     /** @var string */
-    private const BITBUCKET_BRANCH_API = "https://api.bitbucket.org/2.0/repositories/gigabyte-software/review-creator/";
+    private const BITBUCKET_API = "https://api.bitbucket.org/2.0/repositories/";
 
     /** @var Client */
     private $httpClient;
@@ -35,76 +36,45 @@ class BitbucketService
     }
 
     /**
-     * @param integer|string $id
-     * @param string $description
-     * @return string
+     * @param PullRequest $pullRequest
+     * @param string      $upsourceUrl
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function changePullRequestDescription(string $id, string $description): void
+    public function changePullRequestDescription(PullRequest $pullRequest, string $upsourceUrl): void
     {
-        // Get $title and $originalDescription from get request
-        $title = $this->getPullRequestTitle($id);
-        $originalDescription = $this->getPullRequestDescription($id);
+        // Get $title, $id and $originalDescription from $pullRequest object
+        $title = $pullRequest->getTitle();
+        $id = $pullRequest->getId();
+        $originalDescription = $pullRequest->getDescription();
+        $baseUrl = $this->getBitbucketRepositoryUrl($pullRequest->getFullRepositoryName());
 
         // Create PUT request from guzzleResponse, pass in method (required), uri and an array (can be array of arrays -
         // auth and json are preset acceptable arrays). $id and $description are passed into method. $title from getReq
         $this->httpClient->request("PUT", 'pullrequests/' . $id,
             [
-                'base_uri' => self::BITBUCKET_BRANCH_API,
+                'base_uri' => $baseUrl,
                 'auth' => $this->getAuth(),
                 'json' => [
                     'id' => $id,
                     'title' => $title,
-                    'description' => $originalDescription . " " . $description,
+                    'description' => $originalDescription . " " . $upsourceUrl,
                 ],
             ]
         );
     }
 
-    /**
-     * @param integer|string $id
-     * @return string
-     */
-    private function getPullRequestTitle(string $id): string
-    {
-        // Get all pull request data
-        $guzzleResponse = $this->httpClient->request("GET", "pullrequests/$id",
-            [
-                'base_uri' => self::BITBUCKET_BRANCH_API,
-                'auth' => $this->getAuth(),
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (a long line of json text)
-        $pullRequestBody = $guzzleResponse->getBody()->getContents();
-
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $pullRequest = json_decode($pullRequestBody, true);
-
-        // Return the title from $pullRequest
-        return $pullRequest['title'];
+    public function checkForMerge() {
+        // todo - check for merge and if branch was closed?
     }
 
     /**
-     * @param integer|string $id
+     * @param string $fullRepositoryName
      * @return string
      */
-    private function getPullRequestDescription(string $id): string
+    private function getBitbucketRepositoryUrl(string $fullRepositoryName)
     {
-        // Get all pull request data
-        $guzzleResponse = $this->httpClient->request("GET", 'pullrequests/' . $id,
-            [
-                'base_uri' => self::BITBUCKET_BRANCH_API,
-                'auth' => $this->getAuth(),
-            ]
-        );
-
-        // Getting contents of body from guzzleResponse (json text)
-        $pullRequestBody = $guzzleResponse->getBody()->getContents();
-        // decode body of guzzle response (pullRequest) into an array, assoc (array) = true
-        $pullRequestArray = json_decode($pullRequestBody, true);
-
-        // Return the description from $pullRequestArray
-        return $pullRequestArray['description'];
+        return self::BITBUCKET_API . $fullRepositoryName . "/";
     }
 
     /**
