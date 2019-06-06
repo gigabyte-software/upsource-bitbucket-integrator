@@ -12,7 +12,9 @@ use Assert\Assert;
  */
 class PullRequest
 {
-    /** @var int */
+    /**
+     * @var int
+     */
     private $id;
 
     /**
@@ -27,13 +29,19 @@ class PullRequest
      */
     private $repositoryName;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $branchName;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $title;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $description;
 
     /**
@@ -136,11 +144,30 @@ class PullRequest
     }
 
     /**
-     * @param string $content
      * @return void
      */
-    public function appendToDescription(string $content): void
+    public function serialiseToJson(): string
     {
-        // todo
+        $serialisePullRequest = [
+            'id' => $this->getId(),
+            'fullRepositoryName' => $this->getFullRepositoryName(),
+            'repositoryName' => $this->getRepositoryName(),
+            'branchName' => $this->getBranchName(),
+            'title' => $this->getTitle(),
+            'description' => $this->getDescription(),
+        ];
+
+        return json_encode($serialisePullRequest);
+    }
+
+    /**
+     * @param string $upsourceReviewUrl
+     * @return string
+     */
+    public function appendToDescription(string $upsourceReviewUrl): string
+    {
+        $newDescription = self::getDescription() . " " . $upsourceReviewUrl;
+
+        return $newDescription;
     }
 }

@@ -4,8 +4,13 @@ require_once '../vendor/autoload.php';
 
 use Controllers\HookController;
 use GuzzleHttp\Client;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LogLevel;
 use Services\BitbucketService;
+use Services\MonologService;
 use Services\UpsourceService;
 use Slim\App;
 
@@ -56,6 +61,17 @@ $container[UpsourceService::class] = function () {
     return $upsourceService;
 };
 
+// monolog error/debug logging
+$container[Logger::class] = function () use ($app) {
+    $logger = new Logger('log');
+    $stream = getenv('ENVIRONMENT') === 'prod' ? 'php://stderr' : __DIR__ . '/../logs/application.log';
+    $handler = new StreamHandler($stream, LogLevel::DEBUG);
+    $handler->setFormatter(new LineFormatter());
+    $logger->pushHandler($handler);
+
+    return $logger;
+};
+
 /**
  * @param ContainerInterface $container
  * @return HookController
@@ -63,13 +79,14 @@ $container[UpsourceService::class] = function () {
 $container['\Controllers\HookController'] = function (ContainerInterface $container) {
     return new HookController(
         $container->get(UpsourceService::class),
-        $container->get(BitbucketService::class)
+        $container->get(BitbucketService::class),
+        $container->get(Logger::class)
     );
 };
 
 // Route for dealing with Bitbuckets POST request (Webhook) - app accepts POST requests to this URL
 // (can't show in chrome as that's a GET request)
-$app->post('/bitbucket', '\Controllers\HookController:createUpsourceReview');
+$app->post('/bitbucket', '\Controllers\HookController:createReview');
 
 $app->post('/create-pull-request', '\Controllers\HookController:createUpsourceReviewWithModel');
 

@@ -24,4 +24,13 @@ class PullRequestRepository
     {
         $this->bitbucketService = $bitbucketService;
     }
+
+    /**
+     * save() method
+     * @return void
+     */
+    public function updateBitbucketDescription()
+    {
+
+    }
 }

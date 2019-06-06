@@ -40,16 +40,12 @@ class UpsourceService
      * @param PullRequest $pullRequest
      * @return string
      */
-
-    public function createUpsourceReview(PullRequest $pullRequest): string
+    public function createReview(PullRequest $pullRequest): string
     {
         $upsourceProjectId = $this->getUpsourceProjectId($pullRequest->getRepositoryName());
 
         // Extract upsourceBranchName (not always exactly the same as the bitbucketBranchName)
         $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $pullRequest->getBranchName());
-
-        // Extract upsourceBranchName (not always exactly the same as the bitbucketBranchName)
-        $upsourceBranchName = $this->getUpsourceBranchName($upsourceProjectId, $bitbucketBranchName);
 
         // Extract reviewId
         $upsourceReviewId = $this->getUpsourceReviewId($upsourceProjectId, $upsourceBranchName);
@@ -63,7 +59,6 @@ class UpsourceService
                     'auth' => $this->getAuth(),
                     'json' => [
                         "projectId" => $upsourceProjectId,
-
                         "branch" => $upsourceBranchName,
                     ],
                 ]
